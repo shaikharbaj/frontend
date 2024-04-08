@@ -1,0 +1,22 @@
+.navbar {
+    background-color: rgb(70, 70, 141);
+}
+
+.nav-link {
+    color: white !important;
+    /* font-weight: bold; */
+}
+
+.navbar-brand {
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: bold;
+}
+
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler-icon:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
