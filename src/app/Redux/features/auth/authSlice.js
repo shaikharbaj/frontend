@@ -38,6 +38,9 @@ const authSlice = createSlice({
       state.userinfo = null;
       Helper.removeToken();
     },
+    setuserprofiledata:(state,action)=>{
+        state.userinfo=action.payload;
+    },
     clearerror: (state, action) => {
       state.error = null;
     },
@@ -58,5 +61,5 @@ const authSlice = createSlice({
       });
   },
 });
-export const { setCredentials, logout,clearerror } = authSlice.actions;
+export const { setCredentials, logout,clearerror,setuserprofiledata} = authSlice.actions;
 export default authSlice.reducer;

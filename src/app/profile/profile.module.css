@@ -4,3 +4,20 @@
        justify-content: center;
        align-items: center;
 }
+.main_img{
+         margin-bottom: 1rem;
+}
+
+.input{
+         display: none !important;
+}
+.label{
+          border: 1px solid black;
+          padding: .1rem .5rem;
+          margin-right: .5rem;
+}
+.preview{
+          width: 50px;
+          height: 50px;
+          border-radius:9999px ;
+}
