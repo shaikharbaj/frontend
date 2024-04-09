@@ -14,14 +14,15 @@ export default function login() {
         email: "",
         password: "",
     });
+    const [error,setError] = useState();
 
     const InputchangeHandler = (e) => {
         setValue((prev) => {
             return { ...prev, [e.target.name]: e.target.value };
         });
     };
-
     const SubmitHandler = async (event) => {
+        setError(null);
         event.preventDefault();
         try {
             const payload = {
@@ -37,7 +38,13 @@ export default function login() {
             }
             successtoast('user logged in successfully');
         } catch (error) {
-            errortoast(error.response.data.message || error);
+             if(error.response.data.validationerror && (error.response.data.message ===
+                "Validation failed")){
+                      setError(error.response.data.validationerror)
+                }else{
+                    errortoast(error.response.data.message || error);
+                }
+           
         }
     };
 
@@ -51,15 +58,17 @@ export default function login() {
             <form className={styles.form} onSubmit={SubmitHandler}>
                 <h3>Login Here</h3>
 
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">Email<span className={styles.required}>*</span></label>
                 <input type="email" placeholder="Email" id="email" name="email"
                     value={value.email}
                     onChange={InputchangeHandler} />
+                {error?.email && <span className="error">{error.email}</span>}
 
-                <label htmlFor="password">Password</label>
+                <label htmlFor="password">Password<span className={styles.required}>*</span></label>
                 <input type="password" placeholder="Password" id="password" name="password"
                     value={value.password}
                     onChange={InputchangeHandler} />
+                {error?.password && <span className="error">{error.password}</span>}
 
                 <button >Log In</button>
                 <div className={styles.alreadyhave}>

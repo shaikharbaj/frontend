@@ -12,9 +12,13 @@
          display: none !important;
 }
 .label{
-          border: 1px solid black;
+          border: 1px solid rgba(0, 0,0, 0.2);
           padding: .1rem .5rem;
           margin-right: .5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 600;
 }
 .preview{
           width: 50px;

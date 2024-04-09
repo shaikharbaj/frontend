@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import Loading from "../app/Components/Loader/Loader";
 
-const authenticatedRoutes = ["/dashboard/home"];
+const authenticatedRoutes = ["/dashboard/home","/profile"];
 
 export default function Protected({ children }) {
   const [user, setUser] = useState({});
@@ -17,7 +17,7 @@ export default function Protected({ children }) {
     if (!userinfo && authenticatedRoutes.includes(pathname)) push("/login");
 
     if (userinfo) setUser(userinfo);
-  }, []);
+  }, [userinfo]);
 
   if (!user?.email) return <Loading />;
 

@@ -18,6 +18,7 @@ export default function Register() {
         email: "",
         password: "",
     });
+    const [error, setError] = useState(null);
 
     const InputchangeHandler = (e) => {
         setValue((prev) => {
@@ -27,6 +28,7 @@ export default function Register() {
 
     const SubmitHandler = async (event) => {
         event.preventDefault();
+        setError(null);
         setLoading(true);
         try {
             const formData = new FormData();
@@ -43,7 +45,12 @@ export default function Register() {
                 router.push("/login")
             }, 100);
         } catch (error) {
-            errortoast(error.response.data.message || error)
+            if (error.response.data.validationerror) {
+                setError(error.response.data.validationerror)
+            } else {
+                errortoast(error.response.data.message || error)
+            }
+
         } finally {
             setLoading(false);
         }
@@ -52,78 +59,27 @@ export default function Register() {
 
     return (
         <>
-            {/* {
-                <main className="form-signin">
-                    <form onSubmit={SubmitHandler}>
-                        <h1 className="h3 mb-3 fw-normal">Please Register</h1>
-
-                        <div className="form-floating">
-                            <label htmlFor="floatingInput">Enter Name</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                id="floatingInput"
-                                placeholder="enter name"
-                                name="name"
-                                value={value.name}
-                                onChange={InputchangeHandler}
-                            />
-
-                        </div>
-                        <div className="form-floating">
-                            <label htmlFor="floatingInput">Email address</label>
-                            <input
-                                type="email"
-                                className="form-control"
-                                id="floatingInput"
-                                placeholder="name@example.com"
-                                name="email"
-                                value={value.email}
-                                onChange={InputchangeHandler}
-                            />
-
-                        </div>
-                        <div className="form-floating">
-                            <label htmlFor="floatingPassword">Password</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                id="floatingPassword"
-                                placeholder="Password"
-                                name="password"
-                                value={value.password}
-                                onChange={InputchangeHandler}
-                            />
-
-                        </div>
-                        <div>
-                            <input type="file" accept="image/*" onChange={(e) => setAvatar(e.target.files[0])} />
-                        </div>
-                        <button className="w-100 btn btn-lg btn-primary" type="submit">
-                            Sign in
-                        </button>
-                    </form>
-                </main>
-            } */}
             <div className={styles.background}>
                 <div className={styles.shape}></div>
                 <div className={styles.shape}></div>
             </div>
             <form className={styles.regiform} onSubmit={SubmitHandler}>
                 <h3>Register Here</h3>
-                <label htmlFor="name">Username</label>
+                <label htmlFor="name">Username<span className={styles.required}>*</span></label>
                 <input type="text" placeholder="name" id="name" name="name"
                     value={value.name}
                     onChange={InputchangeHandler} />
-                <label htmlFor="email">Email</label>
+                {error?.name && <span className="error">{error.name}</span>}
+                <label htmlFor="email">Email<span className={styles.required}>*</span></label>
                 <input type="email" placeholder="email" id="email" name="email"
                     value={value.email}
                     onChange={InputchangeHandler} />
-
-                <label htmlFor="password">Password</label>
+                {error?.email && <span className="error">{error.email}</span>}
+                <label htmlFor="password">Password<span className={styles.required}>*</span></label>
                 <input type="password" placeholder="Password" id="password" name="password"
                     value={value.password}
-                    onChange={InputchangeHandler} className="mb-3" />
+                    onChange={InputchangeHandler} />
+                {(error?.password || error?.Password) && <span className="error mb-2">{error.password || error.Password}</span>}<br />
                 <label htmlFor="avatar" className={styles.image_label}>choose image</label>
                 <input type="file" accept="image/*" className={styles.avatar} id="avatar" onChange={(e) => setAvatar(e.target.files[0])} />
                 {avatar && <img src={URL.createObjectURL(avatar)} alt="" className={styles.preview} />}

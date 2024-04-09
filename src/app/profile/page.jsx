@@ -1,11 +1,12 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import Navbar from '../Components/Loader/Navbar/Navbar'
+import imageCompression from 'browser-image-compression'
 import { useSelector, useDispatch } from 'react-redux'
 import { loadUserAsync, setuserprofiledata } from '../Redux/features/auth/authSlice'
 import styles from './profile.module.css'
 import privateRequest from '@/Interceptor/privateRequest'
 import { errortoast, successtoast } from '@/utils/toastalert/alerttoast'
+
 const page = () => {
     const { userinfo } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
@@ -17,8 +18,30 @@ const page = () => {
     const [city, setCity] = useState('');
     const [state, setState] = useState('');
     const [zipcode, setZipcode] = useState('');
+    const [imgcompressloading, setimgcompressloading] = useState(false);
     const [loading, setLoading] = useState(false);
     const [avatar, setAvatar] = useState(null);
+    const [error, setError] = useState(null);
+    const HandleFileChange = async (event) => {
+        setimgcompressloading(true);
+        const imageFile = event.target.files[0];
+        if ((imageFile.size * 1024 * 1024) > (1 * 1024 * 1024)) {
+            try {
+                const compressedFile = await imageCompression(imageFile, {
+                    maxSizeMB: 1
+                });
+                setAvatar(compressedFile);
+                return;
+            } catch (error) {
+                console.log(error);
+            } finally {
+                setimgcompressloading(false);
+            }
+        }
+        setAvatar(imageFile);
+    }
+
+
     useEffect(() => {
         if (userinfo) {
             // Update state variables when userinfo changes
@@ -40,21 +63,23 @@ const page = () => {
     useEffect(() => {
         dispatch(loadUserAsync())
     }, []);
+    console.log(error)
     const submitHandler = async () => {
-        const formdata = new FormData();
-        formdata.append("name", name);
-        formdata.append("email", email);
-        if (avatar) {
-            formdata.append('file', avatar);
-        }
-        formdata.append("data_of_birth", date_of_birth);
-        formdata.append('phone_number', phone_number);
-        formdata.append('street', street);
-        formdata.append('city', city);
-        formdata.append('state', state);
-        formdata.append('zipcode', zipcode);
+        setError(null);
         try {
             setLoading(true);
+            const formdata = new FormData();
+            formdata.append("name", name);
+            formdata.append("email", email);
+            if (avatar) {
+                formdata.append('file', avatar);
+            }
+            formdata.append("data_of_birth", date_of_birth);
+            formdata.append('phone_number', phone_number);
+            formdata.append('street', street);
+            formdata.append('city', city);
+            formdata.append('state', state);
+            formdata.append('zipcode', zipcode);
             const response = await privateRequest.patch("/user/updateprofile", formdata);
             const data = await response.data;
             if (response.status === 200) {
@@ -63,7 +88,11 @@ const page = () => {
                 setAvatar(null)
             }
         } catch (error) {
-            errortoast(error.response.data.message || error)
+            if (error.response.data.validationerror) {
+                setError(error.response.data.validationerror)
+            } else {
+                errortoast(error.response.data.message || error)
+            }
         } finally {
             setLoading(false);
         }
@@ -78,10 +107,10 @@ const page = () => {
                                 <div className="account-settings">
                                     <div className="user-profile">
                                         <div className="user-avatar mb-2">
-                                            <img src={userinfo?.avatar} className={`${styles.main_img} img-fluid`} alt="image" />
-                                            <input type="file" accept="image/*" className={styles.input} id="profile" onChange={(e) => setAvatar(e.target.files[0])} />
+                                            <img src={userinfo?.avatar ? userinfo.avatar : "https://st4.depositphotos.com/14953852/24787/v/450/depositphotos_247872612-stock-illustration-no-image-available-icon-vector.jpg"} className={`${styles.main_img} img-fluid`} alt="image" />
+                                            <input type="file" accept="image/*" className={styles.input} id="profile" onChange={HandleFileChange} />
                                             <div className={styles.change_profile}>
-                                                <label htmlFor="profile" className={styles.label}>Choose File</label>
+                                                <label htmlFor="profile" className={styles.label}>Choose File<i className='bx bxs-camera camera_icon ms-2'></i></label>
                                                 {avatar && <img src={URL.createObjectURL(avatar)} alt="img" className={styles.preview} />}
                                             </div>
                                         </div>
@@ -107,6 +136,8 @@ const page = () => {
                                         <div className="form-group">
                                             <label htmlFor="fullName">Full Name</label>
                                             <input type="text" className="form-control" id="fullName" placeholder="Enter full name" value={name} onChange={(e) => setName(e.target.value)} />
+                                            {error?.name && <span className="error">{error.name}</span>}
+
                                         </div>
                                     </div>
                                     <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
@@ -114,13 +145,16 @@ const page = () => {
                                             <label htmlFor="eMail">Email</label>
                                             <input type="email" className="form-control" id="eMail" placeholder="Enter email ID" value={email}
                                                 onChange={(e) => setEmail(e.target.value)} disabled={true} />
+                                            {error?.email && <span className="error">{error.email}</span>}
+
                                         </div>
                                     </div>
                                     <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
                                         <div className="form-group">
                                             <label htmlFor="phone">Phone</label>
-                                            <input type="text" className="form-control" id="phone" placeholder="Enter phone number" value={phone_number}
+                                            <input type="number" className="form-control" id="phone" placeholder="Enter phone number" value={phone_number}
                                                 onChange={(e) => setPhone(e.target.value)} />
+
                                         </div>
                                     </div>
                                     <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
@@ -162,7 +196,7 @@ const page = () => {
                                 <div className="row gutters mt-2">
                                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
                                         <div className="text-right">
-                                            <button type="button" id="submit" name="submit" className="btn btn-primary w-50" onClick={submitHandler} disabled={loading}>{loading ? "Data is Updating" : "Update"}</button>
+                                            <button type="button" id="submit" name="submit" className="btn btn-primary w-50" onClick={submitHandler} disabled={loading || imgcompressloading}>{loading ? "Data is Updating" : (imgcompressloading ? "Image is Compressing" : "Update")}</button>
                                         </div>
                                     </div>
                                 </div>

@@ -41,14 +41,14 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarNav">
                     <ul className="navbar-nav ms-auto">
-
-
+                       
                         {
                             token ? <>
                                 <li className="nav-item">
                                     <Link className="nav-link active" aria-current="page" href="/">
                                         {userinfo?.email}
                                     </Link>
+                                    
 
                                 </li>
                                 <li className="nav-item">
