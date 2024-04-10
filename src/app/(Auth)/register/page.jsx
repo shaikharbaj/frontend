@@ -2,23 +2,25 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { setCredentials } from "@/app/Redux/features/auth/authSlice";
+import { clearerror, registerUserAsync, setCredentials } from "@/app/Redux/features/auth/authSlice";
 import { useRouter } from "next/navigation";
 import styles from '../auth.module.css'
 import Link from "next/link";
 import { errortoast, successtoast } from "@/utils/toastalert/alerttoast";
+import { useSelector } from 'react-redux'
 export default function Register() {
     const dispatch = useDispatch();
     const router = useRouter();
     const { push } = useRouter();
     const [avatar, setAvatar] = useState();
-    const [loading, setLoading] = useState(false);
+    const { loading, error, success } = useSelector((state) => state.auth);
+    // const [loading, setLoading] = useState(false);
     const [value, setValue] = useState({
         name: "",
         email: "",
         password: "",
     });
-    const [error, setError] = useState(null);
+    // const [error, setError] = useState(null);
 
     const InputchangeHandler = (e) => {
         setValue((prev) => {
@@ -26,10 +28,32 @@ export default function Register() {
         });
     };
 
+    useEffect(() => {
+        return () => {
+            dispatch(clearerror());
+        }
+    }, []);
+
+    useEffect(() => {
+        if (error) {
+            
+            if (typeof (error) === "string") {
+                errortoast(error);
+                dispatch(clearerror());
+            }           
+        }
+        if (success) {
+            successtoast('user register in successfully');
+            push("/login");
+            dispatch(clearerror());
+        }
+       
+    }, [error, success])
+
     const SubmitHandler = async (event) => {
         event.preventDefault();
-        setError(null);
-        setLoading(true);
+        // setError(null);
+        // setLoading(true);
         try {
             const formData = new FormData();
             formData.append("name", value.name);
@@ -38,21 +62,22 @@ export default function Register() {
             if (avatar) {
                 formData.append('file', avatar);
             }
-            const response = await axios.post("http://localhost:8000/user/create_user", formData);
-            const data = await response.data;
-            successtoast('user register successfully')
-            setTimeout(() => {
-                router.push("/login")
-            }, 100);
+            dispatch(registerUserAsync(formData))
+            // const response = await axios.post("http://localhost:8000/user/create_user", formData);
+            // const data = await response.data;
+            // successtoast('user register successfully')
+            // setTimeout(() => {
+            //     router.push("/login")
+            // }, 100);
         } catch (error) {
-            if (error.response.data.validationerror) {
-                setError(error.response.data.validationerror)
-            } else {
-                errortoast(error.response.data.message || error)
-            }
+            // if (error.response.data.validationerror) {
+            //     setError(error.response.data.validationerror)
+            // } else {
+            //     errortoast(error.response.data.message || error)
+            // }
 
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

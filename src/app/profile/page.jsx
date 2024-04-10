@@ -2,13 +2,13 @@
 import React, { useEffect, useState } from 'react'
 import imageCompression from 'browser-image-compression'
 import { useSelector, useDispatch } from 'react-redux'
-import { loadUserAsync, setuserprofiledata } from '../Redux/features/auth/authSlice'
+import { clearerror, loadUserAsync, setuserprofiledata, updateuserProfileAsync } from '../Redux/features/auth/authSlice'
 import styles from './profile.module.css'
 import privateRequest from '@/Interceptor/privateRequest'
 import { errortoast, successtoast } from '@/utils/toastalert/alerttoast'
 
 const page = () => {
-    const { userinfo } = useSelector((state) => state.auth);
+    const { userinfo, error, loading, success } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -19,9 +19,11 @@ const page = () => {
     const [state, setState] = useState('');
     const [zipcode, setZipcode] = useState('');
     const [imgcompressloading, setimgcompressloading] = useState(false);
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
     const [avatar, setAvatar] = useState(null);
-    const [error, setError] = useState(null);
+    // const [error, setError] = useState(null);
+    const currentDate = new Date().toISOString().split('T')[0];
+
     const HandleFileChange = async (event) => {
         setimgcompressloading(true);
         const imageFile = event.target.files[0];
@@ -62,40 +64,74 @@ const page = () => {
 
     useEffect(() => {
         dispatch(loadUserAsync())
-    }, []);
-    console.log(error)
-    const submitHandler = async () => {
-        setError(null);
-        try {
-            setLoading(true);
-            const formdata = new FormData();
-            formdata.append("name", name);
-            formdata.append("email", email);
-            if (avatar) {
-                formdata.append('file', avatar);
-            }
-            formdata.append("data_of_birth", date_of_birth);
-            formdata.append('phone_number', phone_number);
-            formdata.append('street', street);
-            formdata.append('city', city);
-            formdata.append('state', state);
-            formdata.append('zipcode', zipcode);
-            const response = await privateRequest.patch("/user/updateprofile", formdata);
-            const data = await response.data;
-            if (response.status === 200) {
-                dispatch(setuserprofiledata(data));
-                successtoast('user updated successfully');
-                setAvatar(null)
-            }
-        } catch (error) {
-            if (error.response.data.validationerror) {
-                setError(error.response.data.validationerror)
-            } else {
-                errortoast(error.response.data.message || error)
-            }
-        } finally {
-            setLoading(false);
+        return () => {
+            dispatch(clearerror());
         }
+    }, []);
+
+    useEffect(() => {
+        if (error) {
+
+            if (typeof (error) === "string") {
+                errortoast(error);
+                dispatch(clearerror());
+            }
+        }
+        if (success) {
+            successtoast('user profile updated successfully');
+            setAvatar(null)
+            dispatch(clearerror());
+        }
+
+    }, [error, success])
+
+    const submitHandler = async (event) => {
+        // setError(null);
+        // try {
+        // setLoading(true);
+        event.preventDefault();
+        const formdata = new FormData();
+        formdata.append("name", name);
+        formdata.append("email", email);
+        if (avatar) {
+            formdata.append('file', avatar);
+        }
+        if (date_of_birth) {
+            formdata.append("data_of_birth", date_of_birth);
+        }
+        if (phone_number) {
+            formdata.append('phone_number', phone_number);
+        }
+        if (street) {
+            formdata.append('street', street);
+        }
+        if (city) {
+            formdata.append('city', city);
+        }
+        if (state) {
+            formdata.append('state', state);
+        }
+        if (zipcode) {
+            formdata.append('zipcode', zipcode);
+        }
+        dispatch(updateuserProfileAsync(formdata))
+        // const response = await privateRequest.patch("/user/updateprofile", formdata);
+        // const data = await response.data;
+        // if (response.status === 200) {
+        //     dispatch(setuserprofiledata(data));
+        //     successtoast('user updated successfully');
+        //     setAvatar(null)
+        // }
+        // }
+        // catch (error) {
+        //     if (error.response.data.validationerror) {
+        //         setError(error.response.data.validationerror)
+        //     } else {
+        //         errortoast(error.response.data.message || error)
+        //     }
+        // } finally {
+        //     setLoading(false);
+        // }
     }
     return (
         <>
@@ -154,13 +190,15 @@ const page = () => {
                                             <label htmlFor="phone">Phone</label>
                                             <input type="number" className="form-control" id="phone" placeholder="Enter phone number" value={phone_number}
                                                 onChange={(e) => setPhone(e.target.value)} />
+                                            {error?.phone_number && <span className="error">{error.phone_number}</span>}
 
                                         </div>
                                     </div>
                                     <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
                                         <div className="form-group">
                                             <label htmlFor="website">DOB</label>
-                                            <input type="date" className="form-control" id="website" placeholder="date of birth" onChange={(e) => setDob(e.target.value)} value={date_of_birth} />
+                                            <input type="date" className="form-control" id="website" placeholder="date of birth" onChange={(e) => setDob(e.target.value)} value={date_of_birth} max={currentDate} />
+                                            {error?.date && <span className="error">{error.date}</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -189,7 +227,8 @@ const page = () => {
                                     <div className="col-xl-6 col-lg-6 col-md-6 col-sm-6 col-12">
                                         <div className="form-group">
                                             <label htmlFor="zIp">Zip Code</label>
-                                            <input type="text" className="form-control" id="zIp" placeholder="Zip Code" value={zipcode} onChange={(e) => setZipcode(e.target.value)} />
+                                            <input type="number" className="form-control" id="zIp" placeholder="Zip Code" value={zipcode} onChange={(e) => setZipcode(e.target.value)} />
+                                            {error?.zipcode && <span className="error">{error.zipcode}</span>}
                                         </div>
                                     </div>
                                 </div>
