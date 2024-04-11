@@ -18,7 +18,12 @@ export function middleware(request) {
   if(homeRoute && !token){
     return NextResponse.redirect(new URL("/login", request.nextUrl.origin));
   }
+ 
+  if(path ==="/about" && !token){
+
+       return NextResponse.redirect(new URL("/login",request.nextUrl.origin))
+  }
 }
 export const config = {
-  matcher: ["/dashboard/home", "/login", "/register","/"],
+  matcher: ["/dashboard/home", "/login", "/register","/","/about"],
 };
