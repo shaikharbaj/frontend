@@ -132,7 +132,6 @@ const authSlice = createSlice({
       .addCase(registerUserAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-        state.userinfo = action.payload;
       })
       .addCase(updateuserProfileAsync.pending, (state, action) => {
         state.loading = true;

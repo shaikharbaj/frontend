@@ -24,7 +24,7 @@ export default function login() {
         });
     };
     useEffect(() => {
-        return ()=>{
+        return () => {
             dispatch(clearerror())
         };
     }, [])
